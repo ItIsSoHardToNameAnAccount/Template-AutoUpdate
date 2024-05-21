@@ -62,24 +62,14 @@ echo "post-receive hook completed."
 chmod +x ./hooks/post-receive
 ```
 
-**3. Add remote**
- * Fork(Optional)
-repository url = ssh://yourusername@ipAdress/path/to/your/app.git
- * Command Line
-```
-cd /path/to/your/local/repo
-git remote add origin user@yourserver:/path/to/your/app.git
-git push origin master
-```
-
-**4. Setup Nginx**
+**3. Setup Nginx**
 ```
 sudo vim /etc/nginx/nginx.conf
 ```
  * Add config in server model
 ```
-location /deploy/ {
-        alias /root/Deploy/;
+location /Deploy/AutoUpdate/ {
+        alias /root/Deploy/AutoUpdate/;
         autoindex on;  # 可选项，启用目录列表
 
         # 设置正确的MIME类型
@@ -94,9 +84,6 @@ location /deploy/ {
         # 添加安全头
         add_header X-Frame-Options "SAMEORIGIN";
         add_header X-XSS-Protection "1; mode=block";
-
-        # Avoid redirection
-        try_files $uri $uri/ =404;
 }
 ```
  * Change file onwer
@@ -109,4 +96,55 @@ sudo chmod -R 755 /root/Deploy
 ```
 sudo nginx -t
 sudo systemctl restart nginx
+```
+
+## Config Local
+**1. Add remote**
+ * Fork(Optional)
+repository url = ssh://yourusername@ipAdress/path/to/your/app.git
+ * Command Line
+```
+cd /path/to/your/local/repo
+git remote add origin user@yourserver:/path/to/your/app.git
+git push origin master
+```
+
+## Config Embedded Machine
+**1. Write auto update script**
+```
+#!/bin/bash
+
+DEPLOY_URL=http://yourserver/path/to/your/excutable/folder
+LOCAL_PATH=/path/to/local/AutoUpdate
+LOCAL_METADATA_PATH=/path/to/local/AutoUpdate.metadata
+
+# 获取服务器上文件的最后修改时间
+REMOTE_MODIFIED_TIME=$(curl -sI $DEPLOY_URL | grep -i 'Last-Modified' | cut -d' ' -f2-)
+REMOTE_MODIFIED_TIMESTAMP=$(date -d "$REMOTE_MODIFIED_TIME" +%s)
+
+# 获取本地文件的最后修改时间
+if [ -f $LOCAL_METADATA_PATH ]; then
+    LOCAL_MODIFIED_TIME=$(cat $LOCAL_METADATA_PATH)
+    LOCAL_MODIFIED_TIMESTAMP=$(date -d "$LOCAL_MODIFIED_TIME" +%s)
+else
+    LOCAL_MODIFIED_TIMESTAMP=0
+fi
+
+# 比较修改时间，如果服务器文件更新，则下载最新文件
+if [ $REMOTE_MODIFIED_TIMESTAMP -gt $LOCAL_MODIFIED_TIMESTAMP ]; then
+    echo "Downloading latest version..."
+    rm -rf $LOCAL_PATH/*
+    wget -r -np -nH --cut-dirs=3 -R "index.html*" -P $LOCAL_PATH $DEPLOY_URL
+    echo $REMOTE_MODIFIED_TIME > $LOCAL_METADATA_PATH
+    chmod +x $LOCAL_PATH
+else
+    echo "Program is up to date."
+fi
+
+# 运行应用程序
+$LOCAL_PATH/your_application_executable
+```
+* Make sure script is excutable
+```
+chmod +x /path/to/your/script
 ```
