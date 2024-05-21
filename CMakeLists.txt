@@ -22,7 +22,7 @@ set(SOURCE_FILES
 
 #Set executable file
 if(CMAKE_SYSTEM_NAME STREQUAL "Windows")
-	add_executable(${PROJECT_NAME} WIN32 ${HEADER_FILES} ${SOURCE_FILES} main.cpp)
+	add_executable(${PROJECT_NAME} ${HEADER_FILES} ${SOURCE_FILES} main.cpp)
 else()
 	add_executable(${PROJECT_NAME} ${HEADER_FILES} ${SOURCE_FILES} main.cpp)
 endif()
