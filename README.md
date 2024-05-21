@@ -2,14 +2,14 @@
 - This template shows how to auto update embedded device from server.
  
 ## Config Server
-- 1. Initialize a bare repository in your server
+**1. Initialize a bare repository in your server**
 ```bash
 mkdir -p ./repos/AutoUpdate.git
 cd ./repos/AutoUpdate.git
 git init --bare
 ```
 
-- 2. Set Git Hook
+**2. Set Git Hook**
  * Edit post-receive
 ```bash
 sudo vim ./hooks/post-receive
@@ -62,7 +62,7 @@ echo "post-receive hook completed."
 chmod +x ./hooks/post-receive
 ```
 
-- 3. Add remote
+**3. Add remote**
  * Fork(Optional)
 repository url = ssh://yourusername@ipAdress/path/to/your/app.git
  * Command Line
@@ -70,4 +70,34 @@ repository url = ssh://yourusername@ipAdress/path/to/your/app.git
 cd /path/to/your/local/repo
 git remote add origin user@yourserver:/path/to/your/app.git
 git push origin master
+```
+
+**4. Setup Nginx**
+```
+sudo vim /etc/nginx/nginx.conf
+```
+ * Add config in server model
+```
+location /deploy/ {
+        alias /root/Deploy/;
+        autoindex on;  # 可选项，启用目录列表
+
+        # 设置正确的MIME类型
+        default_type application/octet-stream;
+
+        # 防止MIME类型嗅探
+        add_header X-Content-Type-Options nosniff;
+
+        # 添加缓存控制
+        add_header Cache-Control "no-cache, no-store, must-revalidate";
+
+        # 添加安全头
+        add_header X-Frame-Options "SAMEORIGIN";
+        add_header X-XSS-Protection "1; mode=block";
+}
+```
+ * Enabel and restart Nginx
+```
+sudo nginx -t
+sudo systemctl restart nginx
 ```
