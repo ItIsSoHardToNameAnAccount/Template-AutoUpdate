@@ -94,7 +94,16 @@ location /deploy/ {
         # 添加安全头
         add_header X-Frame-Options "SAMEORIGIN";
         add_header X-XSS-Protection "1; mode=block";
+
+        # Avoid redirection
+        try_files $uri $uri/ =404;
 }
+```
+ * Change file onwer
+```
+sudo chown -R nginx:nginx /root/Deploy
+sudo chmod 755 /root
+sudo chmod -R 755 /root/Deploy
 ```
  * Enabel and restart Nginx
 ```
