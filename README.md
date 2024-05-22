@@ -47,13 +47,8 @@ cd $BUILD_DIR
 cmake -S $WORK_TREE -B $BUILD_DIR -DCMAKE_BUILD_TYPE=Release
 cmake --build $BUILD_DIR
 
-# Copy excutable file to depoly folder
-if [ -f $BUILD_DIR/AutoUpdate ]; then
-    cp $BUILD_DIR/AutoUpdate $DEPLOY_DIR/
-else
-    echo "Executable not found"
-    exit 1
-fi
+# Copy files to depoly folder
+rsync -av --delete $BUILD_DIR/ $DEPLOY_DIR/
 
 echo "post-receive hook completed."
 ```
@@ -101,7 +96,9 @@ sudo systemctl restart nginx
 ## Config Local
 **1. Add remote**
  * Fork(Optional)
+```
 repository url = ssh://yourusername@ipAdress/path/to/your/app.git
+```
  * Command Line
 ```
 cd /path/to/your/local/repo
@@ -114,9 +111,10 @@ git push origin master
 ```
 #!/bin/bash
 
-DEPLOY_URL=http://yourserver/path/to/your/excutable/folder
-LOCAL_PATH=/path/to/local/AutoUpdate
+DEPLOY_URL=http://yourserver/path/to/your/excutable/folder/
+LOCAL_PATH=/path/to/local/Folder/
 LOCAL_METADATA_PATH=/path/to/local/AutoUpdate.metadata
+EXCUTABLE_PATH=$LOCAL_PATH/AutoUpdate
 
 # 获取服务器上文件的最后修改时间
 REMOTE_MODIFIED_TIME=$(curl -sI $DEPLOY_URL | grep -i 'Last-Modified' | cut -d' ' -f2-)
@@ -136,13 +134,13 @@ if [ $REMOTE_MODIFIED_TIMESTAMP -gt $LOCAL_MODIFIED_TIMESTAMP ]; then
     rm -rf $LOCAL_PATH/*
     wget -r -np -nH --cut-dirs=3 -R "index.html*" -P $LOCAL_PATH $DEPLOY_URL
     echo $REMOTE_MODIFIED_TIME > $LOCAL_METADATA_PATH
-    chmod +x $LOCAL_PATH
+    chmod +x $EXCUTABLE_PATH
 else
     echo "Program is up to date."
 fi
 
 # 运行应用程序
-$LOCAL_PATH/your_application_executable
+$EXCUTABLE_PATH
 ```
 * Make sure script is excutable
 ```
