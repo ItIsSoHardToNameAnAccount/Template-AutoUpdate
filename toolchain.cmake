@@ -1,5 +1,5 @@
 # If Server use different OS with Embedded Device
-# Change compile command to "$CMAKE -DCMAKE_TOOLCHAIN_FILE=$WORK_TREE/toolchain.cmake -S $WORK_TREE -B $BUILD_DIR -DCMAKE_BUILD_TYPE=Release"
+# Change compile command to "cmake -DCMAKE_TOOLCHAIN_FILE=$WORK_TREE/toolchain.cmake -S $WORK_TREE -B $BUILD_DIR -DCMAKE_BUILD_TYPE=Release"
 
 # Set target OS
 set(CMAKE_SYSTEM_NAME Linux)
